@@ -1,12 +1,11 @@
 ---
 title: "Senescence Significance Testing"
 author: ""
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 output: ioslides_presentation
 ---
 
 <style type="text/css">
-/* Main font settings */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Source+Sans+Pro:wght@300;400;600&display=swap');
 
 body, p, li {
@@ -16,13 +15,11 @@ body, p, li {
   line-height: 1.5;
 }
 
-/* Heading styles */
 h1, h2, h3, h4, h5 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
 }
 
-/* Title slide styling */
 slides > slide.title-slide {
   background: linear-gradient(to bottom right, #8C1D40, #4B2E83);
 }
@@ -39,27 +36,36 @@ slides > slide.title-slide hgroup h2 {
   font-size: 32px;
 }
 
-/* Regular slide headings */
 h2 {
   color: #8C1D40;
   border-bottom: 2px solid #8C1D40;
   padding-bottom: 5px;
 }
 
-/* Content slide styling */
 slides > slide {
-  background-color: #FFFFFF;
+  background-color: #FFFFFF !important; /* Force white background */
   border-top: 5px solid #8C1D40;
 }
 
-/* Code blocks */
+slides > slide:before {
+  background: none !important;
+}
+
+slides > slide p, slides > slide li {
+  color: #333333 !important; /* Darker text for better readability */
+}
+
+em, i {
+  font-style: italic;
+  color: #333333;
+}
+
 pre {
   background-color: #f8f8f8;
   border-left: 5px solid #8C1D40;
   font-size: 16px;
 }
 
-/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -81,7 +87,6 @@ table tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-/* Lists */
 ul, ol {
   margin-left: 20px;
 }
@@ -90,26 +95,22 @@ li {
   margin-bottom: 10px;
 }
 
-/* Emphasis */
 strong {
   color: #8C1D40;
   font-weight: 600;
 }
 
-/* Images and charts */
 img, .plotly, svg {
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   margin: 10px 0;
 }
 
-/* Footer */
 slides > slide:not(.nobackground):after {
   content: '';
   background: none;
 }
 
-/* Custom footer */
 slides > slide::after {
   content: 'Senescence Significance Testing - ' attr(data-slide-num) ' / ' attr(data-total-slides);
   font-size: 12px;
@@ -131,4 +132,13 @@ library(stats)
 library(knitr)
 library(broom)
 library(corrplot)
+```
+
+# What is Cellular Senescence?
+
+Cellular senescence is a state in which cells permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."
+
+```{r data, include=FALSE}
+cellage_data <- read.csv("data/genage_human.csv")
+summary(cellage_data[, 1:5])
 ```

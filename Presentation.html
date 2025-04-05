@@ -3140,12 +3140,11 @@ ul.task-list{list-style: none;}
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2025-04-05</p>
+            <p style="margin-top: 6px; margin-left: -2px;">04/05/2025</p>
           </hgroup>
   </slide>
 
 <style type="text/css">
-/* Main font settings */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Source+Sans+Pro:wght@300;400;600&display=swap');
 
 body, p, li {
@@ -3155,13 +3154,11 @@ body, p, li {
   line-height: 1.5;
 }
 
-/* Heading styles */
 h1, h2, h3, h4, h5 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
 }
 
-/* Title slide styling */
 slides > slide.title-slide {
   background: linear-gradient(to bottom right, #8C1D40, #4B2E83);
 }
@@ -3178,27 +3175,36 @@ slides > slide.title-slide hgroup h2 {
   font-size: 32px;
 }
 
-/* Regular slide headings */
 h2 {
   color: #8C1D40;
   border-bottom: 2px solid #8C1D40;
   padding-bottom: 5px;
 }
 
-/* Content slide styling */
 slides > slide {
-  background-color: #FFFFFF;
+  background-color: #FFFFFF !important; /* Force white background */
   border-top: 5px solid #8C1D40;
 }
 
-/* Code blocks */
+slides > slide:before {
+  background: none !important;
+}
+
+slides > slide p, slides > slide li {
+  color: #333333 !important; /* Darker text for better readability */
+}
+
+em, i {
+  font-style: italic;
+  color: #333333;
+}
+
 pre {
   background-color: #f8f8f8;
   border-left: 5px solid #8C1D40;
   font-size: 16px;
 }
 
-/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -3220,7 +3226,6 @@ table tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-/* Lists */
 ul, ol {
   margin-left: 20px;
 }
@@ -3229,26 +3234,22 @@ li {
   margin-bottom: 10px;
 }
 
-/* Emphasis */
 strong {
   color: #8C1D40;
   font-weight: 600;
 }
 
-/* Images and charts */
 img, .plotly, svg {
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   margin: 10px 0;
 }
 
-/* Footer */
 slides > slide:not(.nobackground):after {
   content: '';
   background: none;
 }
 
-/* Custom footer */
 slides > slide::after {
   content: 'Senescence Significance Testing - ' attr(data-slide-num) ' / ' attr(data-total-slides);
   font-size: 12px;
@@ -3258,6 +3259,10 @@ slides > slide::after {
   color: #666;
 }
 </style>
+
+<slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>What is Cellular Senescence?</h2></hgroup><article  id="what-is-cellular-senescence">
+
+<p>Cellular senescence is a state in which cells permanently stop dividing in response to stress or damage. The term &ldquo;senescence&rdquo; comes from the Latin <em>senescere</em>, meaning &ldquo;to grow old.&rdquo;</p></article></slide>
 
 
   <slide class="backdrop"></slide>
