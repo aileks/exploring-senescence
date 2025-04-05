@@ -2,7 +2,9 @@
 title: "Senescence Significance Testing"
 author: ""
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
-output: ioslides_presentation
+output:
+  ioslides_presentation:
+    widescreen: true
 ---
 
 <style type="text/css">
@@ -11,7 +13,7 @@ output: ioslides_presentation
 body, p, li {
   font-family: 'Source Sans Pro', sans-serif;
   color: #333333;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.5;
 }
 
@@ -21,7 +23,7 @@ h1, h2, h3, h4, h5 {
 }
 
 slides > slide.title-slide {
-  background: linear-gradient(to bottom right, #8C1D40, #4B2E83);
+  background: linear-gradient(to bottom right, #3a009b, #4B2E83);
 }
 
 slides > slide.title-slide hgroup h1 {
@@ -37,14 +39,14 @@ slides > slide.title-slide hgroup h2 {
 }
 
 h2 {
-  color: #8C1D40;
-  border-bottom: 2px solid #8C1D40;
+  color: #3a009b;
+  border-bottom: 2px solid #3a009b;
   padding-bottom: 5px;
 }
 
 slides > slide {
   background-color: #FFFFFF !important; /* Force white background */
-  border-top: 5px solid #8C1D40;
+  border-top: 5px solid #3a009b;
 }
 
 slides > slide:before {
@@ -62,7 +64,7 @@ em, i {
 
 pre {
   background-color: #f8f8f8;
-  border-left: 5px solid #8C1D40;
+  border-left: 5px solid #3a009b;
   font-size: 16px;
 }
 
@@ -73,7 +75,7 @@ table {
 }
 
 table th {
-  background-color: #8C1D40;
+  background-color: #3a009b;
   color: white;
   padding: 10px;
 }
@@ -96,7 +98,7 @@ li {
 }
 
 strong {
-  color: #8C1D40;
+  color: #3a009b;
   font-weight: 600;
 }
 
@@ -132,13 +134,76 @@ library(stats)
 library(knitr)
 library(broom)
 library(corrplot)
+library(crayon)
+
+cellage_data <- read.csv("data/genage_human.csv")
 ```
 
-# What is Cellular Senescence?
+## What is Cellular Senescence? {.build}
+<p style="font-size: 24px;"><strong>Cellular senescence</strong> is a state in which cells permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."</p>
 
-Cellular senescence is a state in which cells permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."
+## Understanding the GenAge Dataset {.build}
+The GenAge Database contains genes potentially associated with human aging and longevity.
 
-```{r data, include=FALSE}
-cellage_data <- read.csv("data/genage_human.csv")
-summary(cellage_data[, 1:5])
+### Key Statistics
+```{r overview, echo=FALSE}
+summary_stats <- data.frame(
+  "Total Genes" = nrow(cellage_data),
+  "Unique Symbols" = length(unique(cellage_data$symbol)),
+  "Missing Values" = sum(is.na(cellage_data))
+)
+
+knitr::kable(t(summary_stats), col.names = "Value")
+```
+
+## Principles of Significance Testing {.build}
+Statistical hypothesis testing is a framework for making decisions about populations based on sample data.
+
+- <strong>Null Hypothesis ($H_0$):</strong> A statement of no effect or no difference.
+- <strong>Alternative Hypothesis ($H_1$ or $H_A$):</strong> A statement that contradicts the null hypothesis.
+
+### Mathematical Framework
+The test statistic $t$ for comparing two means is as follows:
+$$t = \frac{\bar{X}_1 - \bar{X}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}$$
+
+Where $\bar{X}_1, \bar{X}_2$ are sample means, $s_1^2, s_2^2$ are sample variances, and $n_1, n_2$ are sample sizes
+
+<strong>A note on P-values:</strong> $p$-value = $P(T > t)$, where $T$ is the test statistic under the null hypothesis. A small p-value (typically $p$ < 0.05) indicates strong evidence against the null hypothesis, leading to its rejection.
+
+## Exploration of GenAge {.build}
+
+Let's get an idea of the reasons behind the inclusion of genes in the GenAge database. The dataset contains a column named `why`, which provides insight into the rationale for each gene's inclusion.
+
+```{r exploration, echo=FALSE, fig.width=10}
+why_counts <- cellage_data %>%
+  group_by(why) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+top_15 <- head(why_counts, 15)
+
+ggplot(top_15, aes(x = reorder(why, count), y = count)) +
+  geom_bar(stat = "identity", fill = "#4B2E83") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Genes by Reason for Inclusion in GenAge",
+    x = "Reason for Inclusion",
+    y = "Number of Genes"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 14),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 10),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(0.5, 0.5, 1, 0.5, "cm") # Increased bottom margin
+  )
+```
+
+## Visualization of Gene Categories {.build}
+
+```{r visualization, echo=FALSE, fig.width=10}
+# TODO
 ```
