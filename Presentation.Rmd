@@ -140,7 +140,7 @@ cellage_data <- read.csv("data/genage_human.csv")
 ```
 
 ## What is Cellular Senescence? {.build}
-<p style="font-size: 24px;"><strong>Cellular senescence</strong> is a state in which cells permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."</p>
+<p style="font-size: 24px;"><strong>Cellular senescence</strong> is a state in which cells become arrested in the cell cycle. That is, permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."</p>
 
 ## Understanding the GenAge Dataset {.build}
 The GenAge Database contains genes potentially associated with human aging and longevity.
