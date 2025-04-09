@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/1295449/3e57d1855216474187279af1c0650950
+bundleId: https://api.rpubs.com/api/v1/document/1295449/3e57d1855216474187279af1c0650950
+url: http://rpubs.com/aileks/1295449
+version: 1

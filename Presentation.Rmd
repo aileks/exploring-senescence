@@ -1,6 +1,7 @@
 ---
-title: "Senescence Significance Testing"
-author: ""
+title: "Exploring Senescence Mechanisms"
+subtitle: "GenAge Database Analysis"
+author: "Aaliyah Harper"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   ioslides_presentation:
