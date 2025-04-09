@@ -20,6 +20,9 @@ The GenAge dataset contains information about genes linked to cellular senescenc
 - Visualization of gene categories and inclusion reasons
 - Exploration of cellular senescence mechanisms
 - Significance testing framework for aging-related hypotheses
+- Interactive 3D visualization of gene relationships
+- Network analysis of gene category co-occurrences
+- Hypothesis testing of gene discovery patterns
 
 ## Requirements
 - R (version 4.0+)
@@ -42,5 +45,8 @@ The presentation covers:
 - Introduction to cellular senescence
 - Overview of the GenAge dataset
 - Principles of statistical hypothesis testing
-- Visualization of gene categories and their relationships (TODO)
-- Analysis of various aging-related pathways (TODO)
+- Visualization of gene categories using tile plots
+- Interactive 3D visualization of gene relationships using metrics derived from the GenAge database
+- Hypothesis testing of GenAge ID distributions between cell and mammal groups
+- Network analysis of gene category co-occurrences using heatmap visualization
+- Analysis of various aging-related pathways through statistical methods
