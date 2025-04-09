@@ -1,6 +1,6 @@
 ---
 title: "Exploring Senescence Mechanisms"
-subtitle: "GenAge Database Analysis"
+subtitle: "GenAge Human Dataset Analysis"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   ioslides_presentation:
