@@ -125,8 +125,8 @@ library(reshape2)
 library(stats)
 library(knitr)
 library(broom)
-library(corrplot)
 library(RColorBrewer)
+library(pheatmap)
 
 cellage_data <- read.csv("data/genage_human.csv")
 ```
@@ -307,7 +307,9 @@ Since our <strong>$p$-value</strong> is <strong>$`r p_value`$</strong>, we fail 
 
 ## Gene Category Network Analysis {.build}
 
-```{r network_analysis, echo=F}
+A heatmap like this can reveal potential biological relationships and pathways that work together in the aging process.
+
+```{r network_analysis, echo=F, fig.width=10, fig.heigh=8}
 multi_category_genes <- cellage_data %>%
   filter(grepl(",", why)) %>%
   head(15)
@@ -331,14 +333,22 @@ for (i in 1:nrow(multi_category_genes)) {
   }
 }
 
-heatmap(category_matrix,
-  Rowv = NA,
-  Colv = NA,
-  col = colorRampPalette(c("white", "brown"))(25),
-  margins = c(10, 10),
-  xlab = "Category",
-  ylab = "Category",
+heat_colors <- colorRampPalette(c("white", "brown"))(25)
+
+pheatmap(category_matrix,
+  color = heat_colors,
   main = "Category Co-occurrence in Multi-Categorized Genes",
+  fontsize = 10,
+  fontsize_row = 10,
+  fontsize_col = 10,
+  angle_col = 45,
+  cellwidth = 30,
+  cellheight = 30,
+  border_color = NA,
+  treeheight_row = 0,
+  treeheight_col = 0,
+  cluster_rows = FALSE,
+  cluster_cols = FALSE
 )
 ```
 
