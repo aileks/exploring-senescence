@@ -27,10 +27,9 @@ The GenAge dataset contains information about genes linked to cellular senescenc
   - ggplot2
   - dplyr
   - plotly
-  - reshape2
+  - pheatmap
   - knitr
-  - broom
-  - corrplot
+  - RColorBrewer
 
 ## Usage
 1. Clone this repository

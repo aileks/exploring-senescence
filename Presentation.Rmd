@@ -1,12 +1,10 @@
 ---
 title: "Exploring Senescence Mechanisms"
 subtitle: "GenAge Database Analysis"
-author: "Aaliyah Harper"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   ioslides_presentation:
     widescreen: true
-    smaller: true
 ---
 
 <style type="text/css">
@@ -45,9 +43,6 @@ h2 {
 }
 
 slides > slide {
-  width: 95vw;
-  max-width: 1000px;
-  background-color: #ffffff !important;
   border-top: 4px solid #2b5ab8;
 }
 
@@ -104,12 +99,12 @@ strong {
   font-weight: 600;
 }
 
-img, .plotly, .remark-code, svg, .leaflet, .ggplot, .figure {
+img, .plotly, .remark-code, svg, .leaflet, .ggplot {
   display: block !important;
-  margin: 0 auto !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   max-width: 100%;
 }
-
 
 #cell-diagram {
   max-width: 60%;
@@ -122,12 +117,8 @@ knitr::opts_chunk$set(echo = T)
 library(ggplot2)
 library(dplyr)
 library(plotly)
-library(reshape2)
-library(stats)
-library(knitr)
-library(broom)
-library(RColorBrewer)
 library(pheatmap)
+library(RColorBrewer)
 
 cellage_data <- read.csv("data/genage_human.csv")
 ```
@@ -137,18 +128,47 @@ cellage_data <- read.csv("data/genage_human.csv")
 <p style="font-size: 22px;"><strong>Cellular senescence</strong> is a state in which cells become arrested in the cell cycle. That is, permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old.</p>
 <img id="cell-diagram" src="https://fluorofinder.com/wp-content/uploads/2024/08/Screen-Shot-2024-08-07-at-6.31.26-AM-1080x675.png" />
 
-## Understanding the GenAge Dataset {.build}
+## Understanding the GenAge Dataset {.smaller .build}
 The GenAge Database contains genes potentially associated with human aging and longevity.
 
 ### Key Statistics
+
 ```{r overview, echo=F}
-summary_stats <- data.frame(
+basic_stats <- data.frame(
   "Total Genes" = nrow(cellage_data),
-  "Unique Symbols" = length(unique(cellage_data$symbol)),
-  "Missing Values" = sum(is.na(cellage_data))
+  "Unique Symbols" = length(unique(cellage_data$symbol))
 )
 
-knitr::kable(t(summary_stats), col.names = "Value")
+# Category distribution statistics
+category_counts <- cellage_data %>%
+  group_by(why) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+# Calculate percentage of multi-categorized genes
+multi_category_count <- sum(grepl(",", cellage_data$why))
+multi_category_percent <- round((multi_category_count / nrow(cellage_data)) * 100, 1)
+
+# Most common category
+most_common <- category_counts$why[1]
+most_common_count <- category_counts$count[1]
+most_common_percent <- round((most_common_count / nrow(cellage_data)) * 100, 1)
+
+# Compile extended statistics
+extended_stats <- data.frame(
+  "Total Genes" = nrow(cellage_data),
+  "Multi-Category Genes" = paste0(multi_category_count, " (", multi_category_percent, "%)"),
+  "Most Common Category" = paste0(most_common, " (", most_common_count, " genes)"),
+  "Category Count" = length(unique(category_counts$why)),
+  "Most Connected Gene" = cellage_data %>%
+    filter(grepl(",", why)) %>%
+    mutate(connections = sapply(strsplit(why, ","), length)) %>%
+    arrange(desc(connections)) %>%
+    pull(symbol) %>%
+    head(1)
+)
+
+knitr::kable(t(extended_stats), col.names = c("Statistic", "Value"))
 ```
 
 ## Principles of Significance Testing {.build}
@@ -199,19 +219,19 @@ ggplot(top_15, aes(x = reorder(why, count), y = count)) +
   )
 ```
 
-## Visualization of Gene Categories {.build}
+## Gene Categories {.build}
 
-```{r gene_categories, echo=F, fig.width=10, fig.height=6}
+```{r gene_categories, echo=F, fig.width=10, fig.height=5}
 top_reasons <- head(why_counts$why, 5)
 genes_by_reason <- cellage_data %>%
   filter(why %in% top_reasons) %>%
   group_by(why) %>%
-  sample_n(min(6, n())) %>% # Limit to 6 genes per category
+  sample_n(min(5, n())) %>% # Limit to 5 genes per category
   ungroup()
 
 ggplot(genes_by_reason, aes(x = why, y = symbol, fill = why)) +
   geom_tile(color = "white", linewidth = 0.5) +
-  scale_fill_brewer(palette = "Blues") +
+  scale_fill_brewer(palette = "Greens") +
   labs(
     title = "Gene Samples by Senescence Category",
     x = "Senescence Mechanism Category",
@@ -227,50 +247,78 @@ ggplot(genes_by_reason, aes(x = why, y = symbol, fill = why)) +
     panel.grid.minor = element_blank()
   )
 ```
+<p style="font-size: 16px;">The different shades of green represent distinct senescence mechanism categories, with each tile showing the relationship between a gene and its biological pathway category.</p>
 
-## 3D Visualization of Gene Relationships {.build}
 
-```{r plotly_3d, echo=F, out.height="520px", out.width="100%"}
-# Create synthetic data based on gene IDs for visualization
-set.seed(123)
+## Gene Relationships {.build}
+
+```{r plotly_3d, echo=F, out.height="420px", out.width="100%"}
 gene_viz_data <- cellage_data %>%
-  head(100) %>%
   mutate(
-    expression_level = as.numeric(GenAge.ID) / 10 + rnorm(n(), 0, 0.5),
-    mutation_frequency = log(as.numeric(GenAge.ID)) + rnorm(n(), 0, 0.5),
-    pathway_connectivity = as.numeric(GenAge.ID)^0.5 + rnorm(n(), 0, 0.5),
-    category = factor(ifelse(grepl(",", why), "Multiple", why))
+    # First dimension: GenAge ID as a measure of discovery order
+    genage_id = as.numeric(GenAge.ID),
+
+    # Second dimension: Name complexity (approximation of gene complexity)
+    name_length = nchar(name),
+
+    # Third dimension: Mechanism complexity (number of mechanisms)
+    mechanism_count = stringr::str_count(why, ",") + 1,
+
+    # Color by simplified category
+    category = case_when(
+      grepl(",", why) ~ "Multiple",
+      grepl("mammal", why) ~ "Mammal",
+      grepl("cell", why) ~ "Cell",
+      grepl("model", why) ~ "Model",
+      TRUE ~ "Other"
+    )
   )
 
+# Create custom color palette
+custom_colors <- colorRampPalette(c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"))(
+  length(unique(gene_viz_data$category))
+)
+
 plot_ly(gene_viz_data,
-  x = ~expression_level,
-  y = ~mutation_frequency,
-  z = ~pathway_connectivity,
+  x = ~genage_id,
+  y = ~name_length,
+  z = ~mechanism_count,
   color = ~category,
+  colors = custom_colors,
   type = "scatter3d",
   mode = "markers",
   marker = list(size = 5),
   hoverinfo = "text",
-  text = ~ paste("Gene:", symbol, "<br>Category:", why)
+  text = ~ paste(
+    "Gene:", symbol,
+    "<br>Name:", name,
+    "<br>Category:", why,
+    "<br>GenAge ID:", GenAge.ID,
+    "<br>Name Length:", name_length,
+    "<br>Mechanism Count:", mechanism_count
+  )
 ) %>%
   layout(
     scene = list(
       aspectmode = "cube",
-      xaxis = list(title = "Relative Expression Level"),
-      yaxis = list(title = "Mutation Frequency"),
-      zaxis = list(title = "Pathway Connectivity")
+      xaxis = list(title = "GenAge ID (Discovery Order)"),
+      yaxis = list(title = "Gene Name Length"),
+      zaxis = list(title = "Number of Mechanisms")
     ),
     legend = list(
-      title = list(text = "Senescence Mechanism"),
+      title = list(text = "Primary Mechanism"),
       x = 0.85,
       y = 0.9
-    )
+    ),
+    margin = list(t = 0, b = 0, l = 0, r = 0)
   )
 ```
+<p style="font-size: 14px; margin-top: 10px; margin-bottom: 14px;">This 3D visualization plots genes using metrics derived from the GenAge database: the GenAge ID (potentially reflecting order of discovery), gene name length (often correlating with functional complexity), and the number of senescence mechanisms. This approach could reveal patterns in how complex genes participate in multiple aging pathways.</p>
+
 
 ## Hypothesis Testing {.smaller .build}
 
-Let's perform a significance test comparing genes associated with different senescence mechanisms:
+<p style="font-size: 16px; margin-bottom: 2px;">This t-test examines the distribution of GenAge IDs between cell and mammal groups, potentially revealing temporal or priority differences in how these distinct mechanisms were incorporated into the aging research database. Lower GenAge IDs typically indicate earlier database entries, which may reflect historical research priorities or discovery patterns:</p>
 
 ```{r hypothesis_test, echo=F}
 # Extract two groups to compare
@@ -303,12 +351,12 @@ p_value <- round(test_result$p.value, 4)
 
 ### Interpretation
 
-Since our <strong>$p$-value</strong> is <strong>$`r p_value`$</strong>, we fail to reject the null hypothesis, suggesting no significant difference in the GenAge ID distributions between mammal-associated and cell-associated senescence genes.
+<p style="font-size: 16px; margin-bottom: 12px;">Since our <strong>$p$-value</strong> is <strong>$`r p_value`$</strong>, we fail to reject the null hypothesis, suggesting no significant difference in the GenAge ID distributions between mammal-associated and cell-associated senescence genes. The comparable mean GenAge IDs suggest that both mammalian model-derived genes and cellular senescence-related genes were incorporated into our understanding of aging processes at similar rates over time.</p>
 
 
 ## Gene Category Network Analysis {.build}
 
-A heatmap like this can reveal potential biological relationships and pathways that work together in the aging process.
+<p style="font-size: 16px; margin-bottom: 2px;">This heatmap visualizes co-occurrence patterns between senescence mechanism categories, with darker red indicating stronger associations. The matrix reveals which aging pathways frequently operate together in the same genes, highlighting the interconnected nature of senescence processes rather than isolated mechanisms. White cells identify potentially separate pathways or areas needing further research.</p>
 
 ```{r network_analysis, echo=F, fig.width=10, fig.heigh=8}
 multi_category_genes <- cellage_data %>%
@@ -334,7 +382,7 @@ for (i in 1:nrow(multi_category_genes)) {
   }
 }
 
-heat_colors <- colorRampPalette(c("white", "brown"))(25)
+heat_colors <- colorRampPalette(c("white", "darkred"))(25)
 
 pheatmap(category_matrix,
   color = heat_colors,
@@ -354,11 +402,11 @@ pheatmap(category_matrix,
 ```
 
 
-## Code for Gene Distribution Analysis {.build}
+## Code for Gene Distribution Analysis {.smaller .build}
 
-This code analyzes the distribution of genes in the GenAge database by their primary inclusion category, providing insight into how different senescence mechanisms are represented in the dataset.
+<p style="font-size: 16px;">This code analyzes the distribution of genes in the GenAge database by their primary inclusion category, providing insight into how different senescence mechanisms are represented in the dataset.</p>
 
-```{r code_display, echo=T, eval=F}
+```{r code_display, echo=T, eval=F, size="small"}
 # Analysis of gene category distribution in senescence database
 ggplot(top_15, aes(x = reorder(why, count), y = count)) +
   geom_bar(stat = "identity", fill = "steelblue") +
@@ -378,5 +426,3 @@ ggplot(top_15, aes(x = reorder(why, count), y = count)) +
     panel.grid.minor = element_blank()
   )
 ```
-
-
