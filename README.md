@@ -1,4 +1,4 @@
-# Senescence Significance Testing
+# Exploring Senescence
 
 ## Overview
 This repository contains code and data for analyzing cellular senescence through statistical significance testing. The project focuses on exploring the [GenAge human dataset](https://genomics.senescence.info/download.html), which catalogs genes associated with human aging and longevity.
