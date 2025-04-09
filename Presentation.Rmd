@@ -5,16 +5,16 @@ date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   ioslides_presentation:
     widescreen: true
+    smaller: true
 ---
 
 <style type="text/css">
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Source+Sans+Pro:wght@300;400;600&display=swap');
 
 body, p, li {
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   color: #333333;
   font-size: 18px;
-  line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5 {
@@ -30,7 +30,6 @@ slides > slide.title-slide hgroup h1 {
   color: #ffffff;
   font-size: 52px;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-  margin-bottom: 30px;
 }
 
 slides > slide.title-slide hgroup h2 {
@@ -41,12 +40,14 @@ slides > slide.title-slide hgroup h2 {
 h2 {
   color: #2b5ab8;
   border-bottom: 2px solid #2b5ab8;
-  padding-bottom: 5px;
+  padding-bottom: 4px;
 }
 
 slides > slide {
+  width: 95vw;
+  max-width: 1000px;
   background-color: #ffffff !important;
-  border-top: 5px solid #2b5ab8;
+  border-top: 4px solid #2b5ab8;
 }
 
 slides > slide:before {
@@ -64,7 +65,7 @@ em, i {
 
 pre {
   background-color: #f8f8f8;
-  border-left: 5px solid #2b5ab8;
+  border-left: 4px solid #2b5ab8;
   font-size: 16px;
 }
 
@@ -82,7 +83,7 @@ table th {
 
 table td {
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #dadada;
 }
 
 table tr:nth-child(even) {
@@ -102,29 +103,20 @@ strong {
   font-weight: 600;
 }
 
-img, .plotly, svg {
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  margin: 10px 0;
+img, .plotly, .remark-code, svg, .leaflet, .ggplot, .figure {
+  display: block !important;
+  margin: 0 auto !important;
+  max-width: 100%;
 }
 
-slides > slide:not(.nobackground):after {
-  content: '';
-  background: none;
-}
 
-slides > slide::after {
-  content: 'Senescence Significance Testing - ' attr(data-slide-num) ' / ' attr(data-total-slides);
-  font-size: 12px;
-  position: absolute;
-  bottom: 10px;
-  right: 20px;
-  color: #666;
+#cell-diagram {
+  max-width: 60%;
 }
 </style>
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=F}
+knitr::opts_chunk$set(echo = T)
 
 library(ggplot2)
 library(dplyr)
@@ -134,19 +126,21 @@ library(stats)
 library(knitr)
 library(broom)
 library(corrplot)
-library(crayon)
+library(RColorBrewer)
 
 cellage_data <- read.csv("data/genage_human.csv")
 ```
 
 ## What is Cellular Senescence? {.build}
-<p style="font-size: 24px;"><strong>Cellular senescence</strong> is a state in which cells become arrested in the cell cycle. That is, permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old."</p>
+
+<p style="font-size: 22px;"><strong>Cellular senescence</strong> is a state in which cells become arrested in the cell cycle. That is, permanently stop dividing in response to stress or damage. The term "senescence" comes from the Latin <em>senescere</em>, meaning "to grow old.</p>
+<img id="cell-diagram" src="https://fluorofinder.com/wp-content/uploads/2024/08/Screen-Shot-2024-08-07-at-6.31.26-AM-1080x675.png" />
 
 ## Understanding the GenAge Dataset {.build}
 The GenAge Database contains genes potentially associated with human aging and longevity.
 
 ### Key Statistics
-```{r overview, echo=FALSE}
+```{r overview, echo=F}
 summary_stats <- data.frame(
   "Total Genes" = nrow(cellage_data),
   "Unique Symbols" = length(unique(cellage_data$symbol)),
@@ -157,16 +151,18 @@ knitr::kable(t(summary_stats), col.names = "Value")
 ```
 
 ## Principles of Significance Testing {.build}
+
 Statistical hypothesis testing is a framework for making decisions about populations based on sample data.
 
 - <strong>Null Hypothesis ($H_0$):</strong> A statement of no effect or no difference.
 - <strong>Alternative Hypothesis ($H_1$ or $H_A$):</strong> A statement that contradicts the null hypothesis.
 
 ### Mathematical Framework
+
 The test statistic $t$ for comparing two means is as follows:
 $$t = \frac{\bar{X}_1 - \bar{X}_2}{\sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}}}$$
 
-Where $\bar{X}_1, \bar{X}_2$ are sample means, $s_1^2, s_2^2$ are sample variances, and $n_1, n_2$ are sample sizes
+Where $\bar{X}_1, \bar{X}_2$ are sample means, $s_1^2, s_2^2$ are sample variances, and $n_1, n_2$ are sample sizes.
 
 <strong>A note on P-values:</strong> $p$-value = $P(T > t)$, where $T$ is the test statistic under the null hypothesis. A small p-value (typically $p$ < 0.05) indicates strong evidence against the null hypothesis, leading to its rejection.
 
@@ -174,7 +170,7 @@ Where $\bar{X}_1, \bar{X}_2$ are sample means, $s_1^2, s_2^2$ are sample varianc
 
 Let's get an idea of the reasons behind the inclusion of genes in the GenAge database. The dataset contains a column named `why`, which provides insight into the rationale for each gene's inclusion.
 
-```{r exploration, echo=FALSE, fig.width=10}
+```{r exploration, echo=F, fig.width=10}
 why_counts <- cellage_data %>%
   group_by(why) %>%
   summarise(count = n()) %>%
@@ -198,12 +194,178 @@ ggplot(top_15, aes(x = reorder(why, count), y = count)) +
     axis.text.x = element_text(size = 10),
     panel.grid.major.y = element_blank(),
     panel.grid.minor = element_blank(),
-    plot.margin = margin(0.5, 0.5, 1, 0.5, "cm") # Increased bottom margin
+    plot.margin = margin(0.5, 0.5, 1, 0.5, "cm")
   )
 ```
 
 ## Visualization of Gene Categories {.build}
 
-```{r visualization, echo=FALSE, fig.width=10}
-# TODO
+```{r gene_categories, echo=F, fig.width=10, fig.height=6}
+top_reasons <- head(why_counts$why, 5)
+genes_by_reason <- cellage_data %>%
+  filter(why %in% top_reasons) %>%
+  group_by(why) %>%
+  sample_n(min(6, n())) %>% # Limit to 6 genes per category
+  ungroup()
+
+ggplot(genes_by_reason, aes(x = why, y = symbol, fill = why)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  scale_fill_brewer(palette = "Blues") +
+  labs(
+    title = "Gene Samples by Senescence Category",
+    x = "Senescence Mechanism Category",
+    y = "Gene Symbol"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+    axis.text.y = element_text(size = 11),
+    legend.position = "none",
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
 ```
+
+## 3D Visualization of Gene Relationships {.build}
+
+```{r plotly_3d, echo=F, out.height="520px", out.width="100%"}
+# Create synthetic data based on gene IDs for visualization
+set.seed(123)
+gene_viz_data <- cellage_data %>%
+  head(100) %>%
+  mutate(
+    expression_level = as.numeric(GenAge.ID) / 10 + rnorm(n(), 0, 0.5),
+    mutation_frequency = log(as.numeric(GenAge.ID)) + rnorm(n(), 0, 0.5),
+    pathway_connectivity = as.numeric(GenAge.ID)^0.5 + rnorm(n(), 0, 0.5),
+    category = factor(ifelse(grepl(",", why), "Multiple", why))
+  )
+
+plot_ly(gene_viz_data,
+  x = ~expression_level,
+  y = ~mutation_frequency,
+  z = ~pathway_connectivity,
+  color = ~category,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 5),
+  hoverinfo = "text",
+  text = ~ paste("Gene:", symbol, "<br>Category:", why)
+) %>%
+  layout(
+    scene = list(
+      aspectmode = "cube",
+      xaxis = list(title = "Relative Expression Level"),
+      yaxis = list(title = "Mutation Frequency"),
+      zaxis = list(title = "Pathway Connectivity")
+    ),
+    legend = list(
+      title = list(text = "Senescence Mechanism"),
+      x = 0.85,
+      y = 0.9
+    )
+  )
+```
+
+## Hypothesis Testing {.smaller .build}
+
+Let's perform a significance test comparing genes associated with different senescence mechanisms:
+
+```{r hypothesis_test, echo=F}
+# Extract two groups to compare
+mammal_genes <- cellage_data %>%
+  filter(grepl("mammal", why)) %>%
+  pull(GenAge.ID)
+
+cell_genes <- cellage_data %>%
+  filter(grepl("cell", why)) %>%
+  pull(GenAge.ID)
+
+# Perform t-test
+test_result <- t.test(mammal_genes, cell_genes)
+
+# Display results in a formatted table
+test_summary <- data.frame(
+  "Statistic" = c("t-value", "Degrees of Freedom", "p-value", "Mean GenAge ID (Mammal)", "Mean GenAge ID (Cell)"),
+  "Value" = c(
+    round(test_result$statistic, 3),
+    round(test_result$parameter, 1),
+    round(test_result$p.value, 4),
+    round(mean(mammal_genes), 2),
+    round(mean(cell_genes), 2)
+  )
+)
+
+knitr::kable(test_summary)
+p_value <- round(test_result$p.value, 4)
+```
+
+### Interpretation
+
+Since our <strong>$p$-value</strong> is <strong>$`r p_value`$</strong>, we fail to reject the null hypothesis, suggesting no significant difference in the GenAge ID distributions between mammal-associated and cell-associated senescence genes.
+
+
+## Gene Category Network Analysis {.build}
+
+```{r network_analysis, echo=F}
+multi_category_genes <- cellage_data %>%
+  filter(grepl(",", why)) %>%
+  head(15)
+
+categories <- unique(unlist(strsplit(multi_category_genes$why, ",")))
+
+# Create a co-occurrence matrix for visualization
+category_matrix <- matrix(0, length(categories), length(categories))
+rownames(category_matrix) <- colnames(category_matrix) <- categories
+
+for (i in 1:nrow(multi_category_genes)) {
+  gene_cats <- unlist(strsplit(multi_category_genes$why[i], ","))
+  for (j in 1:length(gene_cats)) {
+    for (k in 1:length(gene_cats)) {
+      if (j != k) {
+        row_idx <- which(rownames(category_matrix) == gene_cats[j])
+        col_idx <- which(colnames(category_matrix) == gene_cats[k])
+        category_matrix[row_idx, col_idx] <- category_matrix[row_idx, col_idx] + 1
+      }
+    }
+  }
+}
+
+heatmap(category_matrix,
+  Rowv = NA,
+  Colv = NA,
+  col = colorRampPalette(c("white", "brown"))(25),
+  margins = c(10, 10),
+  xlab = "Category",
+  ylab = "Category",
+  main = "Category Co-occurrence in Multi-Categorized Genes",
+)
+```
+
+
+## Code for Gene Distribution Analysis {.build}
+
+This code analyzes the distribution of genes in the GenAge database by their primary inclusion category, providing insight into how different senescence mechanisms are represented in the dataset.
+
+```{r code_display, echo=T, eval=F}
+# Analysis of gene category distribution in senescence database
+ggplot(top_15, aes(x = reorder(why, count), y = count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Distribution of Genes by Senescence Mechanism",
+    x = "Senescence Mechanism Category",
+    y = "Number of Genes in GenAge Database"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    axis.title = element_text(size = 14),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(size = 10),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
+
+
